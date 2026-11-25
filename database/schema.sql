@@ -47,3 +47,22 @@ CREATE TABLE IF NOT EXISTS lobbies (
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci;
+  
+  -- Таблица участников игровых лобби
+CREATE TABLE IF NOT EXISTS lobby_members (
+    lobby_id INT UNSIGNED NOT NULL,
+    user_id INT UNSIGNED NOT NULL,
+    joined_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (lobby_id, user_id),
+
+    CONSTRAINT fk_lobby_members_lobby
+        FOREIGN KEY (lobby_id) REFERENCES lobbies(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_lobby_members_user
+        FOREIGN KEY (user_id) REFERENCES users(id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;
