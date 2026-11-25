@@ -103,3 +103,26 @@ CREATE TABLE IF NOT EXISTS voting_rounds (
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci;
+  
+  -- Таблица голосов за игровые карты
+CREATE TABLE IF NOT EXISTS map_votes (
+    round_id INT UNSIGNED NOT NULL,
+    user_id INT UNSIGNED NOT NULL,
+    map_id INT UNSIGNED NOT NULL,
+
+    voted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (round_id, user_id),
+
+    CONSTRAINT fk_map_votes_round
+        FOREIGN KEY (round_id) REFERENCES voting_rounds(id),
+
+    CONSTRAINT fk_map_votes_user
+        FOREIGN KEY (user_id) REFERENCES users(id),
+
+    CONSTRAINT fk_map_votes_map
+        FOREIGN KEY (map_id) REFERENCES maps(id)
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;
