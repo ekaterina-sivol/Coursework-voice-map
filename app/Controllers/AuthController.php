@@ -116,4 +116,91 @@ class AuthController extends Controller
             'email' => $email,
         ]);
     }
+    
+    // Отображение формы авторизации
+    public function showLogin(): void
+    {
+        $this->view('login', [
+            'errors' => [],
+            'email' => '',
+            'registered' => isset($_GET['registered']),
+        ]);
+    }
+    
+    // Обработка авторизации
+    public function login(): void
+    {
+        // Проверяем защитный CSRF-токен
+        $token = $_POST['csrf_token'] ?? '';
+        
+        if (
+            !is_string($token)
+            || empty($_SESSION['csrf_token'])
+            || !hash_equals($_SESSION['csrf_token'], $token)
+            ) {
+                http_response_code(403);
+                echo 'Недействительный запрос. Обновите страницу.';
+                return;
+            }
+            
+            // Проверяем типы полученных данных
+            if (
+                !isset($_POST['email'], $_POST['password'])
+                || !is_string($_POST['email'])
+                || !is_string($_POST['password'])
+                ) {
+                    http_response_code(400);
+                    echo 'Некорректные данные запроса.';
+                    return;
+                }
+                
+                $email = trim($_POST['email']);
+                $password = $_POST['password'];
+                
+                $errors = [];
+                
+                // Проверяем введённые данные
+                if (
+                    !filter_var($email, FILTER_VALIDATE_EMAIL)
+                    || strlen($email) > 255
+                    || strlen($password) < 8
+                    || strlen($password) > 72
+                    || str_contains($password, "\0")
+                    ) {
+                        $errors[] = 'Неверная электронная почта или пароль.';
+                    }
+                    
+                    // Проверяем существование пользователя и пароль
+                    if (empty($errors)) {
+                        $userModel = new User();
+                        $user = $userModel->findByEmail($email);
+                        
+                        if (
+                            $user !== null
+                            && password_verify($password, $user['password_hash'])
+                            ) {
+                                // Обновляем идентификатор сессии
+                                session_regenerate_id(true);
+                                
+                                // Сохраняем данные авторизованного пользователя
+                                $_SESSION['user_id'] = (int) $user['id'];
+                                $_SESSION['username'] = $user['username'];
+                                
+                                // Обновляем защитный токен
+                                $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+                                
+                                // Перенаправляем на главную страницу
+                                $this->redirect('/');
+                            }
+                            
+                            $errors[] = 'Неверная электронная почта или пароль.';
+                    }
+                    
+                    // Повторно отображаем форму при ошибках
+                    $this->view('login', [
+                        'errors' => $errors,
+                        'email' => $email,
+                        'registered' => false,
+                    ]);
+    }
 }
