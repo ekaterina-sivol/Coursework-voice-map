@@ -37,27 +37,47 @@ $authController = new AuthController();
 $router->get('/', function (): void {
     echo '<h1>GameVote</h1>';
     echo '<p>Система голосования за карту и режим в сетевой игре</p>';
-    echo '<a href="/login">Вход</a> | ';
-    echo '<a href="/register">Регистрация</a>';
+    
+    // Проверяем авторизацию пользователя
+    if (isset($_SESSION['user_id'])) {
+        $username = htmlspecialchars(
+            $_SESSION['username'],
+            ENT_QUOTES,
+            'UTF-8'
+            );
+        
+        $token = htmlspecialchars(
+            $_SESSION['csrf_token'],
+            ENT_QUOTES,
+            'UTF-8'
+            );
+        
+        echo '<h2>Добро пожаловать, ' . $username . '!</h2>';
+        echo '<p>Вы успешно вошли в аккаунт.</p>';
+        
+        echo '<form action="/logout" method="POST">';
+        echo '<input type="hidden" name="csrf_token" value="' . $token . '">';
+        echo '<button type="submit">Выйти из аккаунта</button>';
+        echo '</form>';
+    } else {
+        echo '<a href="/login">Вход</a> | ';
+        echo '<a href="/register">Регистрация</a>';
+    }
 });
     
-    // Страница авторизации
-    $router->get('/login', function (): void {
-        echo '<h1>Вход в GameVote</h1>';
-        
-        if (isset($_GET['registered'])) {
-            echo '<p>Регистрация прошла успешно!</p>';
-        }
-        
-        echo '<a href="/">На главную</a>';
-    });
-        
-        // Маршруты регистрации
-        $router->get('/register', [$authController, 'showRegister']);
-        $router->post('/register', [$authController, 'register']);
-        
-        // Обрабатываем входящий запрос
-        $router->dispatch(
-            $_SERVER['REQUEST_METHOD'],
-            $_SERVER['REQUEST_URI']
-            );
+    // Маршруты регистрации
+    $router->get('/register', [$authController, 'showRegister']);
+    $router->post('/register', [$authController, 'register']);
+    
+    // Маршруты авторизации
+    $router->get('/login', [$authController, 'showLogin']);
+    $router->post('/login', [$authController, 'login']);
+    
+    // Маршрут выхода из аккаунта
+    $router->post('/logout', [$authController, 'logout']);
+    
+    // Обрабатываем входящий запрос
+    $router->dispatch(
+        $_SERVER['REQUEST_METHOD'],
+        $_SERVER['REQUEST_URI']
+        );
