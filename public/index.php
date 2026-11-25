@@ -2,31 +2,37 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../app/Core/Autoloader.php';
+
+use App\Core\Router;
+
 header('Content-Type: text/html; charset=UTF-8');
 
-?>
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameVote</title>
-</head>
-<body>
+// Создаём маршрутизатор
+$router = new Router();
 
-    <h1>GameVote</h1>
-
-    <p>Система голосования за карту и режим в сетевой игре</p>
-
-    <h2>Проверка серверного окружения</h2>
-
-    <p>PHP успешно запущен.</p>
-
-    <p>Версия PHP: <?= PHP_VERSION ?></p>
-
-    <p>Расширение PDO MySQL:
-        <?= extension_loaded('pdo_mysql') ? 'Подключено' : 'Не подключено' ?>
-    </p>
-
-</body>
-</html>
+// Главная страница
+$router->get('/', function (): void {
+    echo '<h1>GameVote</h1>';
+    echo '<p>Система голосования за карту и режим в сетевой игре</p>';
+    echo '<a href="/login">Вход</a> | ';
+    echo '<a href="/register">Регистрация</a>';
+});
+    
+    // Страница авторизации
+    $router->get('/login', function (): void {
+        echo '<h1>Вход в GameVote</h1>';
+        echo '<a href="/">На главную</a>';
+    });
+        
+        // Страница регистрации
+        $router->get('/register', function (): void {
+            echo '<h1>Регистрация в GameVote</h1>';
+            echo '<a href="/">На главную</a>';
+        });
+            
+            // Обрабатываем входящий запрос
+            $router->dispatch(
+                $_SERVER['REQUEST_METHOD'],
+                $_SERVER['REQUEST_URI']
+                );
