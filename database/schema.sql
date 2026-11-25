@@ -66,3 +66,40 @@ CREATE TABLE IF NOT EXISTS lobby_members (
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci;
+  
+  -- Таблица раундов голосования
+CREATE TABLE IF NOT EXISTS voting_rounds (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    lobby_id INT UNSIGNED NOT NULL,
+    round_number INT UNSIGNED NOT NULL,
+
+    status ENUM('active', 'completed')
+        NOT NULL DEFAULT 'active',
+
+    started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ends_at DATETIME NOT NULL,
+    completed_at DATETIME DEFAULT NULL,
+
+    winning_map_id INT UNSIGNED DEFAULT NULL,
+    winning_mode_id INT UNSIGNED DEFAULT NULL,
+
+    CONSTRAINT uq_voting_round_number
+        UNIQUE (lobby_id, round_number),
+
+    CONSTRAINT fk_voting_rounds_lobby
+        FOREIGN KEY (lobby_id) REFERENCES lobbies(id),
+
+    CONSTRAINT fk_voting_rounds_map
+        FOREIGN KEY (winning_map_id) REFERENCES maps(id),
+
+    CONSTRAINT fk_voting_rounds_mode
+        FOREIGN KEY (winning_mode_id) REFERENCES game_modes(id),
+
+    CONSTRAINT chk_voting_round_time
+        CHECK (ends_at > started_at),
+
+    CONSTRAINT chk_voting_round_number
+        CHECK (round_number > 0)
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;
