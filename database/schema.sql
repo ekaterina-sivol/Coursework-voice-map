@@ -126,3 +126,26 @@ CREATE TABLE IF NOT EXISTS map_votes (
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci;
+  
+  -- Таблица голосов за игровые режимы
+CREATE TABLE IF NOT EXISTS mode_votes (
+    round_id INT UNSIGNED NOT NULL,
+    user_id INT UNSIGNED NOT NULL,
+    mode_id INT UNSIGNED NOT NULL,
+
+    voted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (round_id, user_id),
+
+    CONSTRAINT fk_mode_votes_round
+        FOREIGN KEY (round_id) REFERENCES voting_rounds(id),
+
+    CONSTRAINT fk_mode_votes_user
+        FOREIGN KEY (user_id) REFERENCES users(id),
+
+    CONSTRAINT fk_mode_votes_mode
+        FOREIGN KEY (mode_id) REFERENCES game_modes(id)
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;
