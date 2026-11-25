@@ -23,6 +23,27 @@ class AuthController extends Controller
     // Обработка регистрации
     public function register(): void
     {
+        // Проверяем защитный CSRF-токен
+        $token = $_POST['csrf_token'] ?? '';
+        
+        if (
+            !is_string($token)
+            || empty($_SESSION['csrf_token'])
+            || !hash_equals($_SESSION['csrf_token'], $token)
+            ) {
+                http_response_code(403);
+                echo 'Недействительный запрос. Обновите страницу.';
+                return;
+            }
+            
+            // Проверяем типы полученных данных
+            foreach (['username', 'email', 'password', 'password_confirm'] as $field) {
+                if (!isset($_POST[$field]) || !is_string($_POST[$field])) {
+                    http_response_code(400);
+                    echo 'Некорректные данные запроса.';
+                    return;
+                }
+            }
         $username = trim((string) ($_POST['username'] ?? ''));
         $email = trim((string) ($_POST['email'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
