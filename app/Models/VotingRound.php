@@ -59,6 +59,25 @@ class VotingRound
                     'Голосование уже запущено.'
                 );
             }
+            
+            // Проверяем минимальное количество участников
+            $stmt = $this->pdo->prepare(
+                'SELECT COUNT(*)
+     FROM lobby_members
+     WHERE lobby_id = :lobby_id'
+                );
+            
+            $stmt->execute([
+                'lobby_id' => $lobbyId,
+            ]);
+            
+            $playerCount = (int) $stmt->fetchColumn();
+            
+            if ($playerCount < 2) {
+                throw new DomainException(
+                    'Для начала голосования необходимо минимум два игрока.'
+                    );
+            }
 
             // Определяем номер следующего раунда
             $stmt = $this->pdo->prepare(
