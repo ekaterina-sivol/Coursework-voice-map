@@ -1,5 +1,5 @@
 -- Начальные данные GameVote
-
+SET NAMES utf8mb4;
 -- Игровые карты
 INSERT INTO maps (name, description)
 VALUES

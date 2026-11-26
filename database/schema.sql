@@ -1,3 +1,4 @@
+SET NAMES utf8mb4;
 -- Таблица зарегистрированных пользователей
 CREATE TABLE IF NOT EXISTS users (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
