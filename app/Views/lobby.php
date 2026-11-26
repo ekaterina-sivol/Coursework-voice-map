@@ -218,6 +218,128 @@
     <a href="/lobbies">
         Вернуться к списку лобби
     </a>
+    
+    <?php if (
+    $isMember
+    && $lobby['status'] === 'voting'
+    && $round !== null
+    && $round['status'] === 'active'
+): ?>
+
+    <section class="voting">
+
+        <h2>Голосование №<?= (int) $round['round_number'] ?></h2>
+
+        <p>
+            Осталось времени:
+            <?= (int) $round['remaining_seconds'] ?> сек.
+        </p>
+
+        <h3>Выберите карту</h3>
+
+        <div class="map-list">
+
+            <?php foreach ($maps as $map): ?>
+
+                <article class="map-card">
+
+                    <h4>
+                        <?= htmlspecialchars($map['name'], ENT_QUOTES, 'UTF-8') ?>
+                    </h4>
+
+                    <p>
+                        <?= htmlspecialchars($map['description'], ENT_QUOTES, 'UTF-8') ?>
+                    </p>
+
+                    <p>Голосов: <?= (int) $map['votes'] ?></p>
+
+                    <form action="/lobby/vote" method="POST">
+
+                        <input type="hidden" name="csrf_token"
+                               value="<?= htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8') ?>">
+
+                        <input type="hidden" name="lobby_id"
+                               value="<?= (int) $lobby['id'] ?>">
+
+                        <input type="hidden" name="round_id"
+                               value="<?= (int) $round['id'] ?>">
+
+                        <input type="hidden" name="type" value="map">
+
+                        <input type="hidden" name="option_id"
+                               value="<?= (int) $map['id'] ?>">
+
+                        <button type="submit"
+                            <?= $userMap === (int) $map['id'] ? 'disabled' : '' ?>>
+
+                            <?= $userMap === (int) $map['id']
+                                ? 'Ваш выбор'
+                                : 'Голосовать' ?>
+
+                        </button>
+
+                    </form>
+
+                </article>
+
+            <?php endforeach; ?>
+
+        </div>
+
+        <h3>Выберите игровой режим</h3>
+
+        <div class="mode-list">
+
+            <?php foreach ($modes as $mode): ?>
+
+                <article class="mode-card">
+
+                    <h4>
+                        <?= htmlspecialchars($mode['name'], ENT_QUOTES, 'UTF-8') ?>
+                    </h4>
+
+                    <p>
+                        <?= htmlspecialchars($mode['description'], ENT_QUOTES, 'UTF-8') ?>
+                    </p>
+
+                    <p>Голосов: <?= (int) $mode['votes'] ?></p>
+
+                    <form action="/lobby/vote" method="POST">
+
+                        <input type="hidden" name="csrf_token"
+                               value="<?= htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8') ?>">
+
+                        <input type="hidden" name="lobby_id"
+                               value="<?= (int) $lobby['id'] ?>">
+
+                        <input type="hidden" name="round_id"
+                               value="<?= (int) $round['id'] ?>">
+
+                        <input type="hidden" name="type" value="mode">
+
+                        <input type="hidden" name="option_id"
+                               value="<?= (int) $mode['id'] ?>">
+
+                        <button type="submit"
+                            <?= $userMode === (int) $mode['id'] ? 'disabled' : '' ?>>
+
+                            <?= $userMode === (int) $mode['id']
+                                ? 'Ваш выбор'
+                                : 'Голосовать' ?>
+
+                        </button>
+
+                    </form>
+
+                </article>
+
+            <?php endforeach; ?>
+
+        </div>
+
+    </section>
+
+<?php endif; ?>
 
 </main>
 

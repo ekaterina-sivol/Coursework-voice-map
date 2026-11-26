@@ -161,6 +161,25 @@ class LobbyController extends Controller
         }
 
         $error = $_SESSION['lobby_error'] ?? '';
+        
+        $round = $roundModel->getLatest($lobbyId);
+        
+        $maps = [];
+        $modes = [];
+        $userMap = null;
+        $userMode = null;
+        
+        if ($round !== null) {
+            $voteModel = new Vote();
+            
+            $roundId = (int) $round['id'];
+            
+            $maps = $voteModel->getMapVotes($roundId);
+            $modes = $voteModel->getModeVotes($roundId);
+            
+            $userMap = $voteModel->getUserMap($roundId, $userId);
+            $userMode = $voteModel->getUserMode($roundId, $userId);
+        }
 
         unset($_SESSION['lobby_error']);
 
@@ -174,6 +193,11 @@ class LobbyController extends Controller
             'isCreator' => (int) $lobby['creator_id'] === $userId,
             'userId' => $userId,
             'error' => $error,
+            'round' => $round,
+            'maps' => $maps,
+            'modes' => $modes,
+            'userMap' => $userMap,
+            'userMode' => $userMode,
         ]);
     }
 
