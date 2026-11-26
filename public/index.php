@@ -6,6 +6,7 @@ require_once __DIR__ . '/../app/Core/Autoloader.php';
 
 use App\Core\Router;
 use App\Controllers\AuthController;
+use App\Controllers\LobbyController;
 
 // Настройка безопасности сессий
 ini_set('session.use_strict_mode', '1');
@@ -19,27 +20,30 @@ session_set_cookie_params([
     'samesite' => 'Lax',
 ]);
 
-// Запускаем сессию
 session_start();
 
-// Создаём защитный CSRF-токен
+// Создание защитного CSRF-токена
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
 header('Content-Type: text/html; charset=UTF-8');
 
-// Создаём маршрутизатор и контроллер
+// Создание маршрутизатора и контроллеров
 $router = new Router();
+
 $authController = new AuthController();
+$lobbyController = new LobbyController();
 
 // Главная страница
 $router->get('/', function (): void {
+    
     echo '<h1>GameVote</h1>';
+    
     echo '<p>Система голосования за карту и режим в сетевой игре</p>';
     
-    // Проверяем авторизацию пользователя
     if (isset($_SESSION['user_id'])) {
+        
         $username = htmlspecialchars(
             $_SESSION['username'],
             ENT_QUOTES,
@@ -53,30 +57,51 @@ $router->get('/', function (): void {
             );
         
         echo '<h2>Добро пожаловать, ' . $username . '!</h2>';
+        
         echo '<p>Вы успешно вошли в аккаунт.</p>';
         
+        echo '<p><a href="/lobbies">Игровые лобби</a></p>';
+        
         echo '<form action="/logout" method="POST">';
-        echo '<input type="hidden" name="csrf_token" value="' . $token . '">';
-        echo '<button type="submit">Выйти из аккаунта</button>';
-        echo '</form>';
+        
+        echo '<input type="hidden" name="csrf_token" value="'
+            . $token . '">';
+            
+            echo '<button type="submit">Выйти из аккаунта</button>';
+            
+            echo '</form>';
+            
     } else {
+        
         echo '<a href="/login">Вход</a> | ';
+        
         echo '<a href="/register">Регистрация</a>';
     }
 });
     
-    // Маршруты регистрации
+    // Маршруты регистрации и авторизации
     $router->get('/register', [$authController, 'showRegister']);
+    
     $router->post('/register', [$authController, 'register']);
     
-    // Маршруты авторизации
     $router->get('/login', [$authController, 'showLogin']);
+    
     $router->post('/login', [$authController, 'login']);
     
-    // Маршрут выхода из аккаунта
     $router->post('/logout', [$authController, 'logout']);
     
-    // Обрабатываем входящий запрос
+    // Маршруты игровых лобби
+    $router->get('/lobbies', [$lobbyController, 'index']);
+    
+    $router->get('/lobby/create', [$lobbyController, 'showCreate']);
+    
+    $router->post('/lobby/create', [$lobbyController, 'create']);
+    
+    $router->get('/lobby', [$lobbyController, 'show']);
+    
+    $router->post('/lobby/join', [$lobbyController, 'join']);
+    
+    // Обработка входящего HTTP-запроса
     $router->dispatch(
         $_SERVER['REQUEST_METHOD'],
         $_SERVER['REQUEST_URI']
