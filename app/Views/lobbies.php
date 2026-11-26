@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Игровые лобби — GameVote</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
 <header>
-    <a href="/">GameVote</a>
+    <a href="/" class="logo">GameVote</a>
 
     <nav>
         <a href="/">Главная</a>
@@ -17,7 +18,6 @@
 </header>
 
 <main>
-
     <h1>Игровые лобби</h1>
 
     <p>
@@ -25,7 +25,7 @@
         собственное лобби для голосования!
     </p>
 
-    <a href="/lobby/create">Создать лобби</a>
+    <a href="/lobby/create" class="button">Создать лобби</a>
 
     <?php
     $statuses = [
@@ -48,20 +48,12 @@
                 <article class="lobby-card">
 
                     <h2>
-                        <?= htmlspecialchars(
-                            $lobby['name'],
-                            ENT_QUOTES,
-                            'UTF-8'
-                        ) ?>
+                        <?= htmlspecialchars($lobby['name'], ENT_QUOTES, 'UTF-8') ?>
                     </h2>
 
                     <p>
                         Создатель:
-                        <?= htmlspecialchars(
-                            $lobby['creator_name'],
-                            ENT_QUOTES,
-                            'UTF-8'
-                        ) ?>
+                        <?= htmlspecialchars($lobby['creator_name'], ENT_QUOTES, 'UTF-8') ?>
                     </p>
 
                     <p>
@@ -74,20 +66,17 @@
                     <p>
                         Статус:
                         <?= htmlspecialchars(
-                            $statuses[$lobby['status']]
-                                ?? 'Неизвестный статус',
+                            $statuses[$lobby['status']] ?? 'Неизвестный статус',
                             ENT_QUOTES,
                             'UTF-8'
                         ) ?>
                     </p>
 
                     <?php if ((int) $lobby['creator_id'] === $userId): ?>
-
                         <p>Ваше лобби</p>
-
                     <?php endif; ?>
 
-                    <a href="/lobby?id=<?= (int) $lobby['id'] ?>">
+                    <a href="/lobby?id=<?= (int) $lobby['id'] ?>" class="button">
                         Открыть лобби
                     </a>
 
@@ -98,7 +87,6 @@
         </section>
 
     <?php endif; ?>
-
 </main>
 
 </body>

@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Игровое лобби — GameVote</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
 <header>
-    <a href="/">GameVote</a>
+    <a href="/" class="logo">GameVote</a>
 
     <nav>
         <a href="/">Главная</a>
@@ -66,7 +67,7 @@
 
     <?php if (!empty($error)): ?>
 
-        <div class="form-errors">
+        <div class="error">
             <?= htmlspecialchars(
                 $error,
                 ENT_QUOTES,
@@ -246,6 +247,14 @@
 
                 <article class="map-card">
 
+                    <?php if (!empty($map['image_path'])): ?>
+                        <img
+                            src="<?= htmlspecialchars($map['image_path'], ENT_QUOTES, 'UTF-8') ?>"
+                            alt="<?= htmlspecialchars($map['name'], ENT_QUOTES, 'UTF-8') ?>"
+                            class="map-image"
+                        >
+                    <?php endif; ?>
+
                     <h4>
                         <?= htmlspecialchars($map['name'], ENT_QUOTES, 'UTF-8') ?>
                     </h4>
@@ -254,7 +263,14 @@
                         <?= htmlspecialchars($map['description'], ENT_QUOTES, 'UTF-8') ?>
                     </p>
 
-                    <p>Голосов: <?= (int) $map['votes'] ?></p>
+                    <p>Голосов: <span id="map-votes-<?= (int) $map['id'] ?>"><?= (int) $map['votes'] ?></span></p>
+
+                    <div class="vote-progress">
+                        <div class="vote-fill"
+                             id="map-progress-<?= (int) $map['id'] ?>"
+                             style="width: <?= round($map['votes'] / max(1, $lobby['player_count']) * 100) ?>%">
+                        </div>
+                    </div>
 
                     <form action="/lobby/vote" method="POST">
 
@@ -305,7 +321,14 @@
                         <?= htmlspecialchars($mode['description'], ENT_QUOTES, 'UTF-8') ?>
                     </p>
 
-                    <p>Голосов: <?= (int) $mode['votes'] ?></p>
+                    <p>Голосов: <span id="mode-votes-<?= (int) $mode['id'] ?>"><?= (int) $mode['votes'] ?></span></p>
+
+                    <div class="vote-progress">
+                        <div class="vote-fill"
+                             id="mode-progress-<?= (int) $mode['id'] ?>"
+                             style="width: <?= round($mode['votes'] / max(1, $lobby['player_count']) * 100) ?>%">
+                        </div>
+                    </div>
 
                     <form action="/lobby/vote" method="POST">
 
@@ -351,53 +374,85 @@
 
     <section class="voting-results">
 
-        <h2>
-            Результаты голосования №<?= (int) $round['round_number'] ?>
-        </h2>
+    <h2>Голосование завершено!</h2>
 
-        <h3>Победившая карта</h3>
+    <p class="result-subtitle">
+        Результаты голосования №<?= (int) $round['round_number'] ?>
+    </p>
 
-        <?php foreach ($maps as $map): ?>
+    <div class="result-list">
 
-            <?php if ((int) $map['id'] === (int) $round['winning_map_id']): ?>
+        <article class="result-card">
 
-                <p>
-                    <?= htmlspecialchars($map['name'], ENT_QUOTES, 'UTF-8') ?>
-                </p>
+            <h3>Победившая карта</h3>
 
-                <p>
-    Голосов:
-    <span id="map-votes-<?= (int) $map['id'] ?>">
-        <?= (int) $map['votes'] ?>
-    </span>
-</p>
+            <?php foreach ($maps as $map): ?>
 
-            <?php endif; ?>
+                <?php if ((int) $map['id'] === (int) $round['winning_map_id']): ?>
 
-        <?php endforeach; ?>
+                    <?php if (!empty($map['image_path'])): ?>
+                        <img
+                            src="<?= htmlspecialchars($map['image_path'], ENT_QUOTES, 'UTF-8') ?>"
+                            alt="<?= htmlspecialchars($map['name'], ENT_QUOTES, 'UTF-8') ?>"
+                            class="result-image"
+                        >
+                    <?php endif; ?>
 
-        <h3>Победивший режим</h3>
+                    <h4>
+                        <?= htmlspecialchars($map['name'], ENT_QUOTES, 'UTF-8') ?>
+                    </h4>
 
-        <?php foreach ($modes as $mode): ?>
+                    <p>
+                        <?= htmlspecialchars($map['description'], ENT_QUOTES, 'UTF-8') ?>
+                    </p>
 
-            <?php if ((int) $mode['id'] === (int) $round['winning_mode_id']): ?>
+                    <p class="result-votes">
+                        Голосов:
+                        <span id="map-votes-<?= (int) $map['id'] ?>">
+                            <?= (int) $map['votes'] ?>
+                        </span>
+                    </p>
 
-                <p>
-                    <?= htmlspecialchars($mode['name'], ENT_QUOTES, 'UTF-8') ?>
-                </p>
+                <?php endif; ?>
 
-                <p>
-    Голосов:
-    <span id="mode-votes-<?= (int) $mode['id'] ?>">
-        <?= (int) $mode['votes'] ?>
-    </span>
-</p>
+            <?php endforeach; ?>
 
-            <?php endif; ?>
+        </article>
 
-        <?php endforeach; ?>
+        <article class="result-card">
 
-    </section>
+            <h3>Победивший режим</h3>
+
+            <div class="result-icon">🏆</div>
+
+            <?php foreach ($modes as $mode): ?>
+
+                <?php if ((int) $mode['id'] === (int) $round['winning_mode_id']): ?>
+
+                    <h4>
+                        <?= htmlspecialchars($mode['name'], ENT_QUOTES, 'UTF-8') ?>
+                    </h4>
+
+                    <p>
+                        <?= htmlspecialchars($mode['description'], ENT_QUOTES, 'UTF-8') ?>
+                    </p>
+
+                    <p class="result-votes">
+                        Голосов:
+                        <span id="mode-votes-<?= (int) $mode['id'] ?>">
+                            <?= (int) $mode['votes'] ?>
+                        </span>
+                    </p>
+
+                <?php endif; ?>
+
+            <?php endforeach; ?>
+
+        </article>
+
+    </div>
+
+</section>
 
 <?php endif; ?>
 
@@ -504,6 +559,7 @@ async function updateVoting() {
             return;
         }
 
+                // Обновляем голоса за карты
         data.maps.forEach(function (map) {
             const element = document.getElementById(
                 'map-votes-' + map.id
@@ -512,8 +568,18 @@ async function updateVoting() {
             if (element) {
                 element.textContent = map.votes;
             }
+
+            const progress = document.getElementById(
+                'map-progress-' + map.id
+            );
+
+            if (progress) {
+                progress.style.width =
+                    (map.votes / Math.max(1, playerCount) * 100) + '%';
+            }
         });
 
+        // Обновляем голоса за игровые режимы
         data.modes.forEach(function (mode) {
             const element = document.getElementById(
                 'mode-votes-' + mode.id
@@ -522,14 +588,42 @@ async function updateVoting() {
             if (element) {
                 element.textContent = mode.votes;
             }
-        });
 
+            const progress = document.getElementById(
+                'mode-progress-' + mode.id
+            );
+
+            if (progress) {
+                progress.style.width =
+                    (mode.votes / Math.max(1, playerCount) * 100) + '%';
+            }
+        });
     } catch (error) {
         console.error('Ошибка обновления голосования', error);
     }
 }
 
 setInterval(updateVoting, 2000);
+
+// Сохраняем положение страницы при голосовании
+const scrollKey = 'voting-scroll-' + lobbyId;
+
+document.querySelectorAll('form[action="/lobby/vote"]').forEach(function (form) {
+    form.addEventListener('submit', function () {
+        sessionStorage.setItem(scrollKey, window.scrollY);
+    });
+});
+
+// Восстанавливаем положение после перезагрузки
+const savedScroll = sessionStorage.getItem(scrollKey);
+
+if (savedScroll !== null) {
+    sessionStorage.removeItem(scrollKey);
+
+    window.addEventListener('load', function () {
+        window.scrollTo(0, Number(savedScroll));
+    });
+}
     
 </script>
 

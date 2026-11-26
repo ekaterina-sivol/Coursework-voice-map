@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Создание лобби — GameVote</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
 <header>
-    <a href="/">GameVote</a>
+    <a href="/" class="logo">GameVote</a>
 
     <nav>
         <a href="/">Главная</a>
@@ -16,7 +17,7 @@
     </nav>
 </header>
 
-<main>
+<main class="create-card">
 
     <h1>Создание игрового лобби</h1>
 

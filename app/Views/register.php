@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Регистрация — GameVote</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
@@ -11,7 +13,7 @@
         <a href="/">GameVote</a>
     </header>
 
-    <main>
+    <main class="auth-card">
         <h1>Создание аккаунта</h1>
 
         <p>Присоединяйся к GameVote и выбирай своё следующее приключение!</p>
