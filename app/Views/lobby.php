@@ -168,6 +168,38 @@
             <?php if ($isCreator): ?>
 
                 <p>Вы создатель этого лобби.</p>
+                
+                <?php if ($lobby['status'] !== 'voting'): ?>
+
+    <?php if ((int) $lobby['player_count'] >= 2): ?>
+
+        <form action="/lobby/start" method="POST">
+
+            <input type="hidden" name="csrf_token"
+                   value="<?= htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8') ?>">
+
+            <input type="hidden" name="lobby_id"
+                   value="<?= (int) $lobby['id'] ?>">
+
+            <button type="submit">
+                <?= $lobby['status'] === 'results'
+                    ? 'Начать новое голосование'
+                    : 'Начать голосование' ?>
+            </button>
+
+        </form>
+
+    <?php else: ?>
+
+        <p>Для начала голосования необходимо минимум два игрока.</p>
+
+    <?php endif; ?>
+
+<?php else: ?>
+
+    <p>Голосование уже началось.</p>
+
+<?php endif; ?>
 
             <?php else: ?>
 
