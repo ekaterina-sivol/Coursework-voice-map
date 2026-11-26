@@ -152,4 +152,88 @@ class Lobby
             
             return $stmt->fetchColumn() !== false;
     }
+    // Присоединение пользователя к игровому лобби
+    public function join(int $lobbyId, int $userId): void
+    {
+        $this->pdo->beginTransaction();
+        
+        try {
+            // Получаем и блокируем запись лобби
+            $stmt = $this->pdo->prepare(
+                'SELECT id, status, max_players
+                 FROM lobbies
+                 WHERE id = :id
+                 FOR UPDATE'
+                );
+            
+            $stmt->execute([
+                'id' => $lobbyId,
+            ]);
+            
+            $lobby = $stmt->fetch();
+            
+            // Проверяем существование лобби
+            if ($lobby === false) {
+                throw new \DomainException(
+                    'Лобби не найдено.'
+                    );
+            }
+            
+            // Проверяем, является ли пользователь участником
+            if ($this->isMember($lobbyId, $userId)) {
+                throw new \DomainException(
+                    'Вы уже являетесь участником этого лобби.'
+                    );
+            }
+            
+            // Запрещаем присоединение во время голосования
+            if ($lobby['status'] === 'voting') {
+                throw new \DomainException(
+                    'Нельзя присоединиться во время голосования.'
+                    );
+            }
+            
+            // Получаем количество участников
+            $stmt = $this->pdo->prepare(
+                'SELECT COUNT(*)
+                 FROM lobby_members
+                 WHERE lobby_id = :lobby_id'
+                );
+            
+            $stmt->execute([
+                'lobby_id' => $lobbyId,
+            ]);
+            
+            $playerCount = (int) $stmt->fetchColumn();
+            
+            // Проверяем наличие свободных мест
+            if ($playerCount >= (int) $lobby['max_players']) {
+                throw new \DomainException(
+                    'В лобби нет свободных мест.'
+                    );
+            }
+            
+            // Добавляем нового участника
+            $stmt = $this->pdo->prepare(
+                'INSERT INTO lobby_members
+                    (lobby_id, user_id)
+                 VALUES
+                    (:lobby_id, :user_id)'
+                );
+            
+            $stmt->execute([
+                'lobby_id' => $lobbyId,
+                'user_id' => $userId,
+            ]);
+            
+            $this->pdo->commit();
+            
+        } catch (Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            
+            throw $e;
+        }
+    }
 }
