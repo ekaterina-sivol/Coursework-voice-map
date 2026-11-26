@@ -260,4 +260,76 @@ class LobbyController extends Controller
         
         $this->redirect('/lobby?id=' . $lobbyId);
     }
+    
+    // Обработка голоса пользователя
+    public function vote(): void
+    {
+        $userId = $this->requireAuth();
+        
+        if (!$this->checkCsrf()) {
+            http_response_code(403);
+            echo 'Недействительный запрос.';
+            return;
+        }
+        
+        $options = ['options' => ['min_range' => 1]];
+        
+        $lobbyId = filter_var(
+            $_POST['lobby_id'] ?? '',
+            FILTER_VALIDATE_INT,
+            $options
+            );
+        
+        $roundId = filter_var(
+            $_POST['round_id'] ?? '',
+            FILTER_VALIDATE_INT,
+            $options
+            );
+        
+        $optionId = filter_var(
+            $_POST['option_id'] ?? '',
+            FILTER_VALIDATE_INT,
+            $options
+            );
+        
+        $type = $_POST['type'] ?? '';
+        
+        if (
+            $lobbyId === false
+            || $roundId === false
+            || $optionId === false
+            || !in_array($type, ['map', 'mode'], true)
+            ) {
+                http_response_code(400);
+                echo 'Некорректные данные голосования.';
+                return;
+            }
+            
+            try {
+                $round = new VotingRound();
+                $round->finish($lobbyId);
+                
+                $vote = new Vote();
+                
+                if ($type === 'map') {
+                    $vote->voteForMap(
+                        $lobbyId, $roundId, $userId, $optionId
+                        );
+                } else {
+                    $vote->voteForMode(
+                        $lobbyId, $roundId, $userId, $optionId
+                        );
+                }
+                
+            } catch (DomainException $e) {
+                $_SESSION['lobby_error'] = $e->getMessage();
+                
+            } catch (PDOException $e) {
+                error_log($e->getMessage());
+                $_SESSION['lobby_error'] =
+                'Не удалось сохранить голос.';
+            }
+            
+            $this->redirect('/lobby?id=' . $lobbyId);
+    }
 }
