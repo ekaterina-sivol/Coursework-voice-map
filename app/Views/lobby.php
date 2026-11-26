@@ -341,6 +341,53 @@
 
 <?php endif; ?>
 
+<?php if (
+    $round !== null
+    && $round['status'] === 'completed'
+): ?>
+
+    <section class="voting-results">
+
+        <h2>
+            Результаты голосования №<?= (int) $round['round_number'] ?>
+        </h2>
+
+        <h3>Победившая карта</h3>
+
+        <?php foreach ($maps as $map): ?>
+
+            <?php if ((int) $map['id'] === (int) $round['winning_map_id']): ?>
+
+                <p>
+                    <?= htmlspecialchars($map['name'], ENT_QUOTES, 'UTF-8') ?>
+                </p>
+
+                <p>Голосов: <?= (int) $map['votes'] ?></p>
+
+            <?php endif; ?>
+
+        <?php endforeach; ?>
+
+        <h3>Победивший режим</h3>
+
+        <?php foreach ($modes as $mode): ?>
+
+            <?php if ((int) $mode['id'] === (int) $round['winning_mode_id']): ?>
+
+                <p>
+                    <?= htmlspecialchars($mode['name'], ENT_QUOTES, 'UTF-8') ?>
+                </p>
+
+                <p>Голосов: <?= (int) $mode['votes'] ?></p>
+
+            <?php endif; ?>
+
+        <?php endforeach; ?>
+
+    </section>
+
+<?php endif; ?>
+
 </main>
 
 </body>
