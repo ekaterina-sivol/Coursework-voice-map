@@ -189,4 +189,107 @@ class VotingRound
 
         return $round === false ? null : $round;
     }
+    
+    // Завершение голосования после истечения времени
+    public function finish(int $lobbyId): void
+    {
+        $this->pdo->beginTransaction();
+        
+        try {
+            // Блокируем лобби на время подсчёта
+            $stmt = $this->pdo->prepare(
+                'SELECT id FROM lobbies
+             WHERE id = :id FOR UPDATE'
+                );
+            
+            $stmt->execute(['id' => $lobbyId]);
+            
+            // Ищем раунд, время которого истекло
+            $stmt = $this->pdo->prepare(
+                "SELECT id FROM voting_rounds
+             WHERE lobby_id = :lobby_id
+               AND status = 'active'
+               AND ends_at <= NOW()
+             LIMIT 1"
+                );
+            
+            $stmt->execute(['lobby_id' => $lobbyId]);
+            
+            $roundId = $stmt->fetchColumn();
+            
+            if ($roundId === false) {
+                $this->pdo->commit();
+                return;
+            }
+            
+            $roundId = (int) $roundId;
+            
+            // Определяем победителей
+            $vote = new Vote();
+            
+            $winningMap = $this->chooseWinner(
+                $vote->getMapVotes($roundId)
+                );
+            
+            $winningMode = $this->chooseWinner(
+                $vote->getModeVotes($roundId)
+                );
+            
+            // Сохраняем результаты раунда
+            $stmt = $this->pdo->prepare(
+                "UPDATE voting_rounds
+             SET status = 'completed',
+                 winning_map_id = :map_id,
+                 winning_mode_id = :mode_id,
+                 completed_at = NOW()
+             WHERE id = :id"
+                );
+            
+            $stmt->execute([
+                'map_id' => $winningMap,
+                'mode_id' => $winningMode,
+                'id' => $roundId,
+            ]);
+            
+            // Переводим лобби в состояние результатов
+            $stmt = $this->pdo->prepare(
+                "UPDATE lobbies
+             SET status = 'results'
+             WHERE id = :id"
+                );
+            
+            $stmt->execute(['id' => $lobbyId]);
+            
+            $this->pdo->commit();
+            
+        } catch (Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            
+            throw $e;
+        }
+    }
+    
+    // Выбор победителя по количеству голосов
+    private function chooseWinner(array $options): int
+    {
+        if (empty($options)) {
+            throw new DomainException(
+                'Нет доступных вариантов голосования.'
+                );
+        }
+        
+        $maxVotes = max(array_column($options, 'votes'));
+        
+        $leaders = [];
+        
+        foreach ($options as $option) {
+            if ((int) $option['votes'] === (int) $maxVotes) {
+                $leaders[] = (int) $option['id'];
+            }
+        }
+        
+        return $leaders[array_rand($leaders)];
+    }
 }
