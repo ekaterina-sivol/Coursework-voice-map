@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Models\VotingRound;
+use App\Models\Vote;
 use App\Models\Lobby;
 use DomainException;
 use PDOException;
@@ -146,8 +148,10 @@ class LobbyController extends Controller
             return;
         }
 
+        $roundModel = new VotingRound();
+        $roundModel->finish($lobbyId);
+        
         $lobbyModel = new Lobby();
-
         $lobby = $lobbyModel->findById($lobbyId);
 
         if ($lobby === null) {
@@ -197,8 +201,10 @@ class LobbyController extends Controller
         }
 
         try {
+            $roundModel = new VotingRound();
+            $roundModel->finish($lobbyId);
+            
             $lobbyModel = new Lobby();
-
             $lobbyModel->join($lobbyId, $userId);
 
         } catch (DomainException $e) {
@@ -211,6 +217,47 @@ class LobbyController extends Controller
                 'Не удалось присоединиться к лобби.';
         }
 
+        $this->redirect('/lobby?id=' . $lobbyId);
+    }
+    
+    // Запуск голосования
+    public function startVoting(): void
+    {
+        $userId = $this->requireAuth();
+        
+        if (!$this->checkCsrf()) {
+            http_response_code(403);
+            echo 'Недействительный запрос.';
+            return;
+        }
+        
+        $lobbyId = filter_var(
+            $_POST['lobby_id'] ?? '',
+            FILTER_VALIDATE_INT,
+            ['options' => ['min_range' => 1]]
+            );
+        
+        if ($lobbyId === false) {
+            http_response_code(400);
+            echo 'Некорректный идентификатор лобби.';
+            return;
+        }
+        
+        try {
+            $round = new VotingRound();
+            
+            $round->finish($lobbyId);
+            $round->start($lobbyId, $userId);
+            
+        } catch (DomainException $e) {
+            $_SESSION['lobby_error'] = $e->getMessage();
+            
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            $_SESSION['lobby_error'] =
+            'Не удалось запустить голосование.';
+        }
+        
         $this->redirect('/lobby?id=' . $lobbyId);
     }
 }
