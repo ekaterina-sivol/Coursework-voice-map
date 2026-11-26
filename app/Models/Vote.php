@@ -226,4 +226,76 @@ class Vote
             throw $e;
         }
     }
+    
+    // Количество голосов за каждую карту
+    public function getMapVotes(int $roundId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT m.id, m.name, m.description, m.image_path,
+                COUNT(v.user_id) AS votes
+         FROM maps m
+         LEFT JOIN map_votes v
+             ON m.id = v.map_id AND v.round_id = :round_id
+         GROUP BY m.id
+         ORDER BY m.id'
+            );
+        
+        $stmt->execute(['round_id' => $roundId]);
+        
+        return $stmt->fetchAll();
+    }
+    
+    // Количество голосов за каждый режим
+    public function getModeVotes(int $roundId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT m.id, m.name, m.description, m.image_path,
+                COUNT(v.user_id) AS votes
+         FROM game_modes m
+         LEFT JOIN mode_votes v
+             ON m.id = v.mode_id AND v.round_id = :round_id
+         GROUP BY m.id
+         ORDER BY m.id'
+            );
+        
+        $stmt->execute(['round_id' => $roundId]);
+        
+        return $stmt->fetchAll();
+    }
+    
+    // Карта, выбранная пользователем
+    public function getUserMap(int $roundId, int $userId): ?int
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT map_id FROM map_votes
+         WHERE round_id = :round_id AND user_id = :user_id'
+            );
+        
+        $stmt->execute([
+            'round_id' => $roundId,
+            'user_id' => $userId,
+        ]);
+        
+        $result = $stmt->fetchColumn();
+        
+        return $result === false ? null : (int) $result;
+    }
+    
+    // Режим, выбранный пользователем
+    public function getUserMode(int $roundId, int $userId): ?int
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT mode_id FROM mode_votes
+         WHERE round_id = :round_id AND user_id = :user_id'
+            );
+        
+        $stmt->execute([
+            'round_id' => $roundId,
+            'user_id' => $userId,
+        ]);
+        
+        $result = $stmt->fetchColumn();
+        
+        return $result === false ? null : (int) $result;
+    }
 }
