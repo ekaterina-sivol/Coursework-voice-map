@@ -292,4 +292,23 @@ class VotingRound
         
         return $leaders[array_rand($leaders)];
     }
+    
+    public function getHistory(int $lobbyId): array
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT vr.round_number, vr.completed_at,
+                m.name AS map_name,
+                gm.name AS mode_name
+         FROM voting_rounds vr
+         JOIN maps m ON m.id = vr.winning_map_id
+         JOIN game_modes gm ON gm.id = vr.winning_mode_id
+         WHERE vr.lobby_id = :lobby_id
+           AND vr.status = 'completed'
+         ORDER BY vr.round_number DESC"
+            );
+        
+        $stmt->execute(['lobby_id' => $lobbyId]);
+        
+        return $stmt->fetchAll();
+    }
 }

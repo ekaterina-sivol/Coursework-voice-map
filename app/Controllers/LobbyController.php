@@ -19,147 +19,143 @@ class LobbyController extends Controller
         if (!isset($_SESSION['user_id'])) {
             $this->redirect('/login');
         }
-
+        
         return (int) $_SESSION['user_id'];
     }
-
+    
     // Проверка защитного CSRF-токена
     private function checkCsrf(): bool
     {
         $token = $_POST['csrf_token'] ?? '';
-
+        
         return is_string($token)
-            && !empty($_SESSION['csrf_token'])
-            && hash_equals($_SESSION['csrf_token'], $token);
+        && !empty($_SESSION['csrf_token'])
+        && hash_equals($_SESSION['csrf_token'], $token);
     }
-
+    
     // Отображение списка игровых лобби
     public function index(): void
     {
         $userId = $this->requireAuth();
-
+        
         $lobbyModel = new Lobby();
-
+        
         $this->view('lobbies', [
             'lobbies' => $lobbyModel->getAll(),
             'userId' => $userId,
         ]);
     }
-
+    
     // Отображение формы создания лобби
     public function showCreate(): void
     {
         $this->requireAuth();
-
+        
         $this->view('lobby_create', [
             'errors' => [],
             'name' => '',
             'maxPlayers' => 10,
         ]);
     }
-
+    
     // Обработка создания нового лобби
     public function create(): void
     {
         $userId = $this->requireAuth();
-
+        
         if (!$this->checkCsrf()) {
             http_response_code(403);
             echo 'Недействительный запрос.';
             return;
         }
-
+        
         if (
             !isset($_POST['name'], $_POST['max_players'])
             || !is_string($_POST['name'])
             || !is_string($_POST['max_players'])
-        ) {
-            http_response_code(400);
-            echo 'Некорректные данные запроса.';
-            return;
-        }
-
-        $name = trim($_POST['name']);
-
-        $maxPlayers = filter_var(
-            $_POST['max_players'],
-            FILTER_VALIDATE_INT
-        );
-
-        $errors = [];
-
-        // Проверяем название лобби
-        if (!preg_match('/^.{3,100}$/us', $name)) {
-            $errors[] = 'Название должно содержать от 3 до 100 символов.';
-        }
-
-        // Проверяем вместимость лобби
-        if (
-            $maxPlayers === false
-            || $maxPlayers < 2
-            || $maxPlayers > 10
-        ) {
-            $errors[] = 'Количество игроков должно быть от 2 до 10.';
-        }
-
-        // Создаём лобби при отсутствии ошибок
-        if (empty($errors)) {
-            try {
-                $lobbyModel = new Lobby();
-
-                $lobbyId = $lobbyModel->create(
-                    $name,
-                    $userId,
-                    $maxPlayers
-                );
-
-                $this->redirect('/lobby?id=' . $lobbyId);
-
-            } catch (PDOException $e) {
-                error_log($e->getMessage());
-
-                $errors[] = 'Не удалось создать лобби. Попробуйте позже.';
+            ) {
+                http_response_code(400);
+                echo 'Некорректные данные запроса.';
+                return;
             }
-        }
-
-        $this->view('lobby_create', [
-            'errors' => $errors,
-            'name' => $name,
-            'maxPlayers' => $maxPlayers === false
-                ? 10
-                : $maxPlayers,
-        ]);
+            
+            $name = trim($_POST['name']);
+            
+            $maxPlayers = filter_var(
+                $_POST['max_players'],
+                FILTER_VALIDATE_INT
+                );
+            
+            $errors = [];
+            
+            if (!preg_match('/^.{3,100}$/us', $name)) {
+                $errors[] = 'Название должно содержать от 3 до 100 символов.';
+            }
+            
+            if (
+                $maxPlayers === false
+                || $maxPlayers < 2
+                || $maxPlayers > 10
+                ) {
+                    $errors[] = 'Количество игроков должно быть от 2 до 10.';
+                }
+                
+                if (empty($errors)) {
+                    try {
+                        $lobbyModel = new Lobby();
+                        
+                        $lobbyId = $lobbyModel->create(
+                            $name,
+                            $userId,
+                            $maxPlayers
+                            );
+                        
+                        $this->redirect('/lobby?id=' . $lobbyId);
+                        
+                    } catch (PDOException $e) {
+                        error_log($e->getMessage());
+                        $errors[] = 'Не удалось создать лобби. Попробуйте позже.';
+                    }
+                }
+                
+                $this->view('lobby_create', [
+                    'errors' => $errors,
+                    'name' => $name,
+                    'maxPlayers' => $maxPlayers === false
+                    ? 10
+                    : $maxPlayers,
+                ]);
     }
-
+    
     // Отображение конкретного лобби
     public function show(): void
     {
         $userId = $this->requireAuth();
-
+        
         $lobbyId = filter_var(
             $_GET['id'] ?? '',
             FILTER_VALIDATE_INT,
             ['options' => ['min_range' => 1]]
-        );
-
+            );
+        
         if ($lobbyId === false) {
             http_response_code(400);
             echo 'Некорректный идентификатор лобби.';
             return;
         }
-
+        
         $roundModel = new VotingRound();
         $roundModel->finish($lobbyId);
         
         $lobbyModel = new Lobby();
         $lobby = $lobbyModel->findById($lobbyId);
-
+        
         if ($lobby === null) {
             http_response_code(404);
             echo 'Лобби не найдено.';
             return;
         }
-
+        
         $error = $_SESSION['lobby_error'] ?? '';
         
         $round = $roundModel->getLatest($lobbyId);
@@ -180,67 +176,68 @@ class LobbyController extends Controller
             $userMap = $voteModel->getUserMap($roundId, $userId);
             $userMode = $voteModel->getUserMode($roundId, $userId);
         }
-
+        
         unset($_SESSION['lobby_error']);
-
+        
         $this->view('lobby', [
             'lobby' => $lobby,
             'members' => $lobbyModel->getMembers($lobbyId),
             'isMember' => $lobbyModel->isMember(
                 $lobbyId,
                 $userId
-            ),
+                ),
             'isCreator' => (int) $lobby['creator_id'] === $userId,
             'userId' => $userId,
             'error' => $error,
             'round' => $round,
+            'history' => $roundModel->getHistory($lobbyId),
             'maps' => $maps,
             'modes' => $modes,
             'userMap' => $userMap,
             'userMode' => $userMode,
         ]);
     }
-
+    
     // Присоединение пользователя к лобби
     public function join(): void
     {
         $userId = $this->requireAuth();
-
+        
         if (!$this->checkCsrf()) {
             http_response_code(403);
             echo 'Недействительный запрос.';
             return;
         }
-
+        
         $lobbyId = filter_var(
             $_POST['lobby_id'] ?? '',
             FILTER_VALIDATE_INT,
             ['options' => ['min_range' => 1]]
-        );
-
+            );
+        
         if ($lobbyId === false) {
             http_response_code(400);
             echo 'Некорректный идентификатор лобби.';
             return;
         }
-
+        
         try {
             $roundModel = new VotingRound();
             $roundModel->finish($lobbyId);
             
             $lobbyModel = new Lobby();
             $lobbyModel->join($lobbyId, $userId);
-
+            
         } catch (DomainException $e) {
             $_SESSION['lobby_error'] = $e->getMessage();
-
+            
         } catch (PDOException $e) {
             error_log($e->getMessage());
-
+            
             $_SESSION['lobby_error'] =
-                'Не удалось присоединиться к лобби.';
+            'Не удалось присоединиться к лобби.';
         }
-
+        
         $this->redirect('/lobby?id=' . $lobbyId);
     }
     
@@ -278,6 +275,7 @@ class LobbyController extends Controller
             
         } catch (PDOException $e) {
             error_log($e->getMessage());
+            
             $_SESSION['lobby_error'] =
             'Не удалось запустить голосование.';
         }
@@ -337,11 +335,17 @@ class LobbyController extends Controller
                 
                 if ($type === 'map') {
                     $vote->voteForMap(
-                        $lobbyId, $roundId, $userId, $optionId
+                        $lobbyId,
+                        $roundId,
+                        $userId,
+                        $optionId
                         );
                 } else {
                     $vote->voteForMode(
-                        $lobbyId, $roundId, $userId, $optionId
+                        $lobbyId,
+                        $roundId,
+                        $userId,
+                        $optionId
                         );
                 }
                 
@@ -350,10 +354,56 @@ class LobbyController extends Controller
                 
             } catch (PDOException $e) {
                 error_log($e->getMessage());
+                
                 $_SESSION['lobby_error'] =
                 'Не удалось сохранить голос.';
             }
             
             $this->redirect('/lobby?id=' . $lobbyId);
+    }
+    
+    // Получение актуального состояния голосования
+    public function votingStatus(): void
+    {
+        $this->requireAuth();
+        
+        $lobbyId = filter_var(
+            $_GET['id'] ?? '',
+            FILTER_VALIDATE_INT,
+            ['options' => ['min_range' => 1]]
+            );
+        
+        if ($lobbyId === false) {
+            http_response_code(400);
+            return;
+        }
+        
+        $roundModel = new VotingRound();
+        $roundModel->finish($lobbyId);
+        
+        $lobby = (new Lobby())->findById($lobbyId);
+        
+        if ($lobby === null) {
+            http_response_code(404);
+            return;
+        }
+        
+        $round = $roundModel->getLatest($lobbyId);
+        
+        $vote = new Vote();
+        
+        header('Content-Type: application/json; charset=utf-8');
+        
+        echo json_encode([
+            'status' => $lobby['status'],
+            'player_count' => (int) $lobby['player_count'],
+            'round_id' => (int) ($round['id'] ?? 0),
+            'maps' => $round
+            ? $vote->getMapVotes((int) $round['id'])
+            : [],
+            'modes' => $round
+            ? $vote->getModeVotes((int) $round['id'])
+            : []
+        ], JSON_UNESCAPED_UNICODE);
     }
 }

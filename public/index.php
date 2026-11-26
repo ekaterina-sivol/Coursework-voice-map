@@ -105,6 +105,8 @@ $router->get('/', function (): void {
     
     $router->post('/lobby/vote', [$lobbyController, 'vote']);
     
+    $router->get('/lobby/status', [$lobbyController, 'votingStatus']);
+    
     // Обработка входящего HTTP-запроса
     $router->dispatch(
         $_SERVER['REQUEST_METHOD'],

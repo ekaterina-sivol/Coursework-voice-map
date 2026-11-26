@@ -365,7 +365,12 @@
                     <?= htmlspecialchars($map['name'], ENT_QUOTES, 'UTF-8') ?>
                 </p>
 
-                <p>Голосов: <?= (int) $map['votes'] ?></p>
+                <p>
+    Голосов:
+    <span id="map-votes-<?= (int) $map['id'] ?>">
+        <?= (int) $map['votes'] ?>
+    </span>
+</p>
 
             <?php endif; ?>
 
@@ -381,7 +386,12 @@
                     <?= htmlspecialchars($mode['name'], ENT_QUOTES, 'UTF-8') ?>
                 </p>
 
-                <p>Голосов: <?= (int) $mode['votes'] ?></p>
+                <p>
+    Голосов:
+    <span id="mode-votes-<?= (int) $mode['id'] ?>">
+        <?= (int) $mode['votes'] ?>
+    </span>
+</p>
 
             <?php endif; ?>
 
@@ -390,6 +400,51 @@
     </section>
 
 <?php endif; ?>
+
+<section class="voting-history">
+
+    <h2>История голосований</h2>
+
+    <?php if (empty($history)): ?>
+
+        <p>Завершённых голосований пока нет.</p>
+
+    <?php else: ?>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Раунд</th>
+                    <th>Карта</th>
+                    <th>Режим</th>
+                    <th>Дата завершения</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <?php foreach ($history as $item): ?>
+                    <tr>
+                        <td><?= (int) $item['round_number'] ?></td>
+
+                        <td>
+                            <?= htmlspecialchars($item['map_name']) ?>
+                        </td>
+
+                        <td>
+                            <?= htmlspecialchars($item['mode_name']) ?>
+                        </td>
+
+                        <td>
+                            <?= htmlspecialchars($item['completed_at']) ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+
+    <?php endif; ?>
+
+</section>
 
 </main>
 
@@ -421,6 +476,61 @@
 
         updateTimer();
     }
+    
+    const lobbyId = <?= (int) $lobby['id'] ?>;
+const lobbyStatus = <?= json_encode($lobby['status']) ?>;
+const roundId = <?= (int) ($round['id'] ?? 0) ?>;
+const playerCount = <?= (int) $lobby['player_count'] ?>;
+
+async function updateVoting() {
+    try {
+        const response = await fetch(
+            '/lobby/status?id=' + lobbyId,
+            { cache: 'no-store' }
+        );
+
+        if (!response.ok) {
+            return;
+        }
+
+        const data = await response.json();
+
+        if (
+            data.status !== lobbyStatus ||
+            data.round_id !== roundId ||
+            data.player_count !== playerCount
+        ) {
+            window.location.reload();
+            return;
+        }
+
+        data.maps.forEach(function (map) {
+            const element = document.getElementById(
+                'map-votes-' + map.id
+            );
+
+            if (element) {
+                element.textContent = map.votes;
+            }
+        });
+
+        data.modes.forEach(function (mode) {
+            const element = document.getElementById(
+                'mode-votes-' + mode.id
+            );
+
+            if (element) {
+                element.textContent = mode.votes;
+            }
+        });
+
+    } catch (error) {
+        console.error('Ошибка обновления голосования', error);
+    }
+}
+
+setInterval(updateVoting, 2000);
+    
 </script>
 
 </body>
