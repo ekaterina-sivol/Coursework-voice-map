@@ -231,9 +231,12 @@
         <h2>Голосование №<?= (int) $round['round_number'] ?></h2>
 
         <p>
-            Осталось времени:
-            <?= (int) $round['remaining_seconds'] ?> сек.
-        </p>
+    Осталось времени:
+    <span id="voting-timer"
+          data-seconds="<?= (int) $round['remaining_seconds'] ?>">
+        <?= (int) $round['remaining_seconds'] ?>
+    </span> сек.
+</p>
 
         <h3>Выберите карту</h3>
 
@@ -389,6 +392,36 @@
 <?php endif; ?>
 
 </main>
+
+<script>
+    const timer = document.getElementById('voting-timer');
+
+    if (timer) {
+        const deadline = Date.now() +
+            Number(timer.dataset.seconds) * 1000;
+
+        function updateTimer() {
+            const seconds = Math.max(
+                0,
+                Math.ceil((deadline - Date.now()) / 1000)
+            );
+
+            timer.textContent = seconds;
+
+            if (seconds === 0) {
+                clearInterval(interval);
+
+                setTimeout(function () {
+                    window.location.reload();
+                }, 1000);
+            }
+        }
+
+        const interval = setInterval(updateTimer, 1000);
+
+        updateTimer();
+    }
+</script>
 
 </body>
 </html>
