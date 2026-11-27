@@ -644,3 +644,218 @@ footer {
         padding: 20px;
     }
 }
+
+/* Выравнивание кнопок в карточках лобби */
+.lobby-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.lobby-card .button {
+    margin-top: auto;
+    width: 100%;
+    text-align: center;
+}
+
+.lobby-card p:last-of-type {
+    margin-bottom: 20px;
+}
+
+/* Отдельный экран голосования */
+
+.voting-page {
+    background: linear-gradient(
+        135deg,
+        #f5f1ff,
+        #fce7f3,
+        #e0e7ff
+    );
+    min-height: 100vh;
+}
+
+.voting-page main {
+    max-width: 1440px;
+    padding-top: 20px;
+}
+
+.voting-page .lobby-info,
+.voting-page .lobby-members,
+.voting-page .lobby-actions,
+.voting-page .voting-history,
+.voting-page main > a {
+    display: none;
+}
+
+.voting-page .voting {
+    margin-top: 0;
+}
+
+.voting-heading {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.voting-heading h1 {
+    font-size: 38px;
+    margin-bottom: 10px;
+}
+
+.voting-heading p {
+    color: #81758f;
+}
+
+/* Таймер и вкладки */
+
+.voting-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #ffffff;
+    padding: 16px 24px;
+    border-radius: 18px;
+    box-shadow: 0 4px 20px rgba(48, 37, 77, 0.1);
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.voting-toolbar h2 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.voting-toolbar p {
+    margin: 10px 0;
+}
+
+.voting-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.voting-tabs button {
+    background-color: #ede9fe;
+    color: #6d28d9;
+    min-width: 180px;
+}
+
+.voting-tabs button.active {
+    background-color: var(--primary);
+    color: white;
+}
+
+.voting-selection {
+    font-size: 14px;
+    color: #81758f;
+}
+
+/* Карточки голосования */
+
+.voting-page .map-list,
+.voting-page .mode-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.voting-page .map-card,
+.voting-page .mode-card {
+    padding: 16px;
+    box-shadow: 0 4px 16px rgba(48, 37, 77, 0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.voting-page .map-card:hover,
+.voting-page .mode-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(48, 37, 77, 0.12);
+}
+
+.voting-page .map-image {
+    aspect-ratio: 16 / 9;
+    margin-bottom: 12px;
+}
+
+.voting-page .map-card p,
+.voting-page .mode-card p {
+    font-size: 14px;
+}
+
+.voting-page .map-card:has(button:disabled),
+.voting-page .mode-card:has(button:disabled) {
+    outline: 2px solid var(--primary);
+    background-color: #faf5ff;
+}
+
+@media (max-width: 1000px) {
+    .voting-page .map-list,
+    .voting-page .mode-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .voting-page .map-list,
+    .voting-page .mode-list {
+        grid-template-columns: 1fr;
+    }
+
+    .voting-heading h1 {
+        font-size: 28px;
+    }
+
+    .voting-tabs button {
+        min-width: 0;
+        flex: 1;
+        padding: 10px;
+    }
+
+    .voting-toolbar {
+        padding: 12px;
+    }
+}
+
+/* Закрепление панели голосования */
+
+.voting-page main,
+.voting-page .voting {
+    overflow: visible;
+}
+
+.voting-page .voting-toolbar {
+    position: sticky;
+    top: 10px;
+    z-index: 100;
+}
+
+/* Выбранная карта или режим */
+
+.voting-page .map-card:has(button:disabled),
+.voting-page .mode-card:has(button:disabled) {
+    border: 2px solid #8b5cf6;
+    outline: none;
+    background-color: #faf5ff;
+    box-shadow: 0 0 18px rgba(139, 92, 246, 0.3);
+}
+
+.voting-page .map-card button:disabled,
+.voting-page .mode-card button:disabled {
+    background-color: #7c3aed;
+    color: #ffffff;
+    opacity: 1;
+    cursor: default;
+}
+
+/* Скрытие неактивной вкладки */
+
+#maps-panel[hidden],
+#modes-panel[hidden] {
+    display: none;
+}
+
+/* Закреплённая панель без верхнего зазора */
+
+.voting-page .voting-toolbar {
+    top: 0;
+    border-radius: 0 0 18px 18px;
+}

@@ -4,9 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Игровое лобби — GameVote</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/style.css?v=<?= filemtime(__DIR__ . '/../../public/css/style.css') ?>">
 </head>
-<body>
+<?php
+$isVoting = $isMember
+    && $lobby['status'] === 'voting'
+    && $round !== null
+    && $round['status'] === 'active';
+?>
+
+<body class="<?= $isVoting ? 'voting-page' : '' ?>">
 
 <header>
     <a href="/" class="logo">GameVote</a>
@@ -229,6 +236,13 @@
 
     <section class="voting">
 
+    <div class="voting-heading">
+        <h1>Выбери своё приключение!</h1>
+        <p>Выберите карту и игровой режим для следующей игры.</p>
+    </div>
+
+    <div class="voting-toolbar">
+
         <h2>Голосование №<?= (int) $round['round_number'] ?></h2>
 
         <p>
@@ -239,6 +253,27 @@
     </span> сек.
 </p>
 
+            <div class="voting-tabs">
+        <button type="button" id="maps-tab"
+                onclick="showVotingTab('maps')">
+            Игровые карты
+        </button>
+
+        <button type="button" id="modes-tab"
+                onclick="showVotingTab('modes')">
+            Игровые режимы
+        </button>
+    </div>
+
+    <p class="voting-selection">
+        Карта: <?= $userMap !== null ? 'выбрана' : 'не выбрана' ?>
+        ·
+        Режим: <?= $userMode !== null ? 'выбран' : 'не выбран' ?>
+    </p>
+
+    </div>
+
+    <div id="maps-panel">
         <h3>Выберите карту</h3>
 
         <div class="map-list">
@@ -305,6 +340,9 @@
 
         </div>
 
+            </div>
+
+    <div id="modes-panel" hidden>
         <h3>Выберите игровой режим</h3>
 
         <div class="mode-list">
@@ -312,6 +350,14 @@
             <?php foreach ($modes as $mode): ?>
 
                 <article class="mode-card">
+
+                    <?php if (!empty($mode['image_path'])): ?>
+                        <img
+                            src="<?= htmlspecialchars($mode['image_path'], ENT_QUOTES, 'UTF-8') ?>"
+                            alt="<?= htmlspecialchars($mode['name'], ENT_QUOTES, 'UTF-8') ?>"
+                            class="map-image"
+                        >
+                    <?php endif; ?>
 
                     <h4>
                         <?= htmlspecialchars($mode['name'], ENT_QUOTES, 'UTF-8') ?>
@@ -362,6 +408,8 @@
             <?php endforeach; ?>
 
         </div>
+
+    </div>
 
     </section>
 
@@ -423,11 +471,19 @@
 
             <h3>Победивший режим</h3>
 
-            <div class="result-icon">🏆</div>
+            
 
             <?php foreach ($modes as $mode): ?>
 
                 <?php if ((int) $mode['id'] === (int) $round['winning_mode_id']): ?>
+
+                    <?php if (!empty($mode['image_path'])): ?>
+                        <img
+                            src="<?= htmlspecialchars($mode['image_path'], ENT_QUOTES, 'UTF-8') ?>"
+                            alt="<?= htmlspecialchars($mode['name'], ENT_QUOTES, 'UTF-8') ?>"
+                            class="result-image"
+                        >
+                    <?php endif; ?>
 
                     <h4>
                         <?= htmlspecialchars($mode['name'], ENT_QUOTES, 'UTF-8') ?>
@@ -489,9 +545,16 @@
                             <?= htmlspecialchars($item['mode_name']) ?>
                         </td>
 
-                        <td>
-                            <?= htmlspecialchars($item['completed_at']) ?>
-                        </td>
+                       <td>
+    <time class="local-time"
+          datetime="<?= htmlspecialchars(
+              str_replace(' ', 'T', $item['completed_at']) . 'Z',
+              ENT_QUOTES,
+              'UTF-8'
+          ) ?>">
+        <?= htmlspecialchars($item['completed_at']) ?>
+    </time>
+</td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -625,6 +688,42 @@ if (savedScroll !== null) {
     });
 }
     
+// Переключение карт и игровых режимов
+const tabKey = 'voting-tab-' + lobbyId + '-' + roundId;
+
+function showVotingTab(tab) {
+    const mapsPanel = document.getElementById('maps-panel');
+    const modesPanel = document.getElementById('modes-panel');
+
+    if (!mapsPanel || !modesPanel) {
+        return;
+    }
+
+    mapsPanel.hidden = tab !== 'maps';
+    modesPanel.hidden = tab !== 'modes';
+
+    document.getElementById('maps-tab')
+        .classList.toggle('active', tab === 'maps');
+
+    document.getElementById('modes-tab')
+        .classList.toggle('active', tab === 'modes');
+
+    sessionStorage.setItem(tabKey, tab);
+}
+
+if (timer) {
+    const savedTab = sessionStorage.getItem(tabKey);
+
+    showVotingTab(savedTab === 'modes' ? 'modes' : 'maps');
+}
+
+// Отображаем время в часовом поясе пользователя
+document.querySelectorAll('.local-time').forEach(function (element) {
+    const date = new Date(element.dateTime);
+
+    element.textContent = date.toLocaleString('ru-RU');
+});
+
 </script>
 
 </body>
