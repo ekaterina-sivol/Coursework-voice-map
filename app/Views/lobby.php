@@ -420,7 +420,7 @@ $isVoting = $isMember
     && $round['status'] === 'completed'
 ): ?>
 
-    <section class="voting-results">
+    <section class="voting-results" id="voting-results">
 
     <h2>Голосование завершено!</h2>
 
@@ -506,7 +506,14 @@ $isVoting = $isMember
 
         </article>
 
-    </div>
+       </div>
+
+    <button type="button"
+            id="close-results"
+            class="close-results"
+            hidden>
+        Вернуться в лобби
+    </button>
 
 </section>
 
@@ -723,6 +730,40 @@ document.querySelectorAll('.local-time').forEach(function (element) {
 
     element.textContent = date.toLocaleString('ru-RU');
 });
+
+// Полноэкранное отображение результатов голосования
+const results = document.getElementById('voting-results');
+const closeResults = document.getElementById('close-results');
+
+const resultKey = 'voting-result-' + lobbyId + '-' + roundId
+    + '-<?= (int) $userId ?>';
+
+if (results && closeResults && <?= $isMember ? 'true' : 'false' ?>) {
+
+    if (sessionStorage.getItem(resultKey) !== 'closed') {
+        results.classList.add('results-fullscreen');
+        document.body.classList.add('results-open');
+        closeResults.hidden = false;
+    }
+
+    function closeResultScreen() {
+        results.classList.remove('results-fullscreen');
+        document.body.classList.remove('results-open');
+
+        closeResults.hidden = true;
+
+        sessionStorage.setItem(resultKey, 'closed');
+    }
+
+    closeResults.addEventListener('click', closeResultScreen);
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' &&
+            results.classList.contains('results-fullscreen')) {
+            closeResultScreen();
+        }
+    });
+}
 
 </script>
 

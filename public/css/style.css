@@ -880,6 +880,102 @@ label {
 
 /* История голосований */
 
+/* Полноэкранное окно результатов */
+
+body.results-open {
+    overflow: hidden;
+}
+
+.voting-results.results-fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    margin: 0;
+    padding: 32px;
+    border: none;
+    border-radius: 0;
+    overflow-y: auto;
+    background: linear-gradient(
+        135deg,
+        #ddd6fe,
+        #fce7f3,
+        #dbeafe
+    );
+    animation: results-appear 0.5s ease;
+}
+
+.results-fullscreen h2 {
+    font-size: clamp(30px, 4vw, 48px);
+    color: #6d28d9;
+    margin-bottom: 12px;
+}
+
+.results-fullscreen .result-subtitle {
+    font-size: 18px;
+    margin-bottom: 28px;
+}
+
+.results-fullscreen .result-list {
+    max-width: 1400px;
+    margin: 0 auto;
+    gap: 30px;
+}
+
+.results-fullscreen .result-card {
+    padding: 24px;
+    border: 2px solid #ffffff;
+    border-radius: 24px;
+    box-shadow: 0 12px 35px rgba(109, 40, 217, 0.12);
+}
+
+.results-fullscreen .result-card h3 {
+    font-size: 22px;
+    margin-bottom: 18px;
+}
+
+.results-fullscreen .result-image {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: 16px;
+}
+
+.results-fullscreen .result-card h4 {
+    font-size: 28px;
+}
+
+.results-fullscreen .result-card p {
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.results-fullscreen .result-votes {
+    font-size: 18px;
+}
+
+.close-results {
+    margin: 28px auto 10px;
+    padding: 16px 40px;
+    font-size: 18px;
+    border-radius: 14px;
+}
+
+.close-results[hidden] {
+    display: none;
+}
+
+@keyframes results-appear {
+    from {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
 .voting-history {
     margin-top: 30px;
     overflow-x: auto;
@@ -1008,5 +1104,39 @@ label {
 
     .voting-toolbar {
         padding: 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    .voting-results.results-fullscreen {
+        padding: 20px;
+    }
+
+    .results-fullscreen .result-list {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .results-fullscreen .result-card {
+        padding: 16px;
+    }
+
+    .results-fullscreen .result-card h4 {
+        font-size: 22px;
+    }
+
+    .close-results {
+        width: 100%;
+    }
+    
+    .close-results:focus-visible {
+    outline: 3px solid #c4b5fd;
+    outline-offset: 3px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .voting-results.results-fullscreen {
+        animation: none;
     }
 }
