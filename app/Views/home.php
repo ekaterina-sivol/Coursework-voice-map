@@ -1,8 +1,3 @@
-<?php
-$maps = (new \App\Models\Map())->getAll();
-$modes = (new \App\Models\GameMode())->getAll();
-?>
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
