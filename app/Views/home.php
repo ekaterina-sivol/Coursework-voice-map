@@ -1,10 +1,15 @@
+<?php
+$maps = (new \App\Models\Map())->getAll();
+$modes = (new \App\Models\GameMode())->getAll();
+?>
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GameVote — Главная</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/style.css?v=<?= filemtime(__DIR__ . '/../../public/css/style.css') ?>">
 </head>
 <body>
 
@@ -34,58 +39,187 @@
 </header>
 
 <main>
+
     <section class="hero">
+
         <div class="hero-content">
+
             <span class="hero-label">GameVote</span>
 
             <h1>Голосование за карту<br>и игровой режим</h1>
-            
+
             <p>
                 Создавай лобби, приглашай друзей
                 и вместе выбирайте карту и режим для игры.
             </p>
 
             <?php if (isset($_SESSION['user_id'])): ?>
-                <a href="/lobbies" class="button">К игровым лобби</a>
+
+                <a href="/lobbies" class="button">
+                    К игровым лобби
+                </a>
+
             <?php else: ?>
-                <a href="/register" class="button">Начать играть</a>
-                <a href="/login" class="button-secondary">Войти</a>
+
+                <a href="/register" class="button">
+                    Начать голосование
+                </a>
+
+                <a href="/login" class="button-secondary">
+                    Войти
+                </a>
+
             <?php endif; ?>
+
         </div>
-        
+
         <img src="/images/gamepad1.png"
-     alt="Игровой контроллер"
-     class="hero-image">
-     
+             alt="Игровой контроллер"
+             class="hero-image">
+
     </section>
 
-    <section class="how-it-works">
-        <h2>Как это работает?</h2>
+    <section class="home-features">
 
-        <div class="steps">
-            <article class="step-card">
-                <span class="step-number">01</span>
-                <h3>Создай лобби</h3>
-                <p>Собери команду от 2 до 10 игроков.</p>
-            </article>
+        <article>
+            <strong><?= count($maps) ?></strong>
+            <span>Игровых карт</span>
+        </article>
 
-            <article class="step-card">
-                <span class="step-number">02</span>
-                <h3>Сделай выбор</h3>
-                <p>Проголосуй за любимую карту и игровой режим.</p>
-            </article>
+        <article>
+            <strong><?= count($modes) ?></strong>
+            <span>Игровых режимов</span>
+        </article>
 
-            <article class="step-card">
-                <span class="step-number">03</span>
-                <h3>Узнай результат</h3>
-                <p>Через 60 секунд система определит победителей.</p>
-            </article>
+        <article>
+            <strong>2–10</strong>
+            <span>Игроков в лобби</span>
+        </article>
+
+        <article>
+            <strong>60 сек.</strong>
+            <span>На голосование</span>
+        </article>
+
+    </section>
+
+    
+
+    <section class="home-gallery">
+
+        <div class="gallery-heading">
+            <h2>Выбери свой мир</h2>
+            <p>
+                От волшебных лесов до далёких планет —
+                познакомься со всеми игровыми картами.
+            </p>
         </div>
+
+        <div class="gallery-grid">
+
+            <?php foreach ($maps as $map): ?>
+
+                <article class="gallery-card">
+
+                    <img
+                        src="<?= htmlspecialchars($map['image_path'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                        alt="<?= htmlspecialchars($map['name'], ENT_QUOTES, 'UTF-8') ?>"
+                        loading="lazy"
+                    >
+
+                    <div class="gallery-card-content">
+
+                        <h3>
+                            <?= htmlspecialchars($map['name'], ENT_QUOTES, 'UTF-8') ?>
+                        </h3>
+
+                        <p>
+                            <?= htmlspecialchars($map['description'], ENT_QUOTES, 'UTF-8') ?>
+                        </p>
+
+                    </div>
+
+                </article>
+
+            <?php endforeach; ?>
+
+        </div>
+
     </section>
+
+    <section class="home-gallery">
+
+        <div class="gallery-heading">
+            <h2>Найди любимый режим</h2>
+            <p>
+                Соревнуйся, исследуй, решай загадки
+                и объединяйся с другими игроками.
+            </p>
+        </div>
+
+        <div class="gallery-grid">
+
+            <?php foreach ($modes as $mode): ?>
+
+                <article class="gallery-card">
+
+                    <img
+                        src="<?= htmlspecialchars($mode['image_path'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                        alt="<?= htmlspecialchars($mode['name'], ENT_QUOTES, 'UTF-8') ?>"
+                        loading="lazy"
+                    >
+
+                    <div class="gallery-card-content">
+
+                        <h3>
+                            <?= htmlspecialchars($mode['name'], ENT_QUOTES, 'UTF-8') ?>
+                        </h3>
+
+                        <p>
+                            <?= htmlspecialchars($mode['description'], ENT_QUOTES, 'UTF-8') ?>
+                        </p>
+
+                    </div>
+
+                </article>
+
+            <?php endforeach; ?>
+
+        </div>
+
+    </section>
+
+    <section class="home-final">
+
+        <h2>Готов выбрать следующее приключение?</h2>
+
+        <p>
+            Собирай друзей и решайте вместе,
+            какой будет ваша следующая игра!
+        </p>
+
+        <?php if (isset($_SESSION['user_id'])): ?>
+
+            <a href="/lobbies" class="button">
+                Перейти к голосованию
+            </a>
+
+        <?php else: ?>
+
+            <a href="/register" class="button">
+                Создать аккаунт
+            </a>
+
+        <?php endif; ?>
+
+    </section>
+
 </main>
 
 <footer>
-    <p>GameVote &copy; 2026</p>
+    <a href="/" class="logo">GameVote</a>
+    <p>Система голосования за карту и игровой режим</p>
+    <p>&copy; 2026 GameVote</p>
 </footer>
 
 </body>
